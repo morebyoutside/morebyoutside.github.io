@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f3b51b" />
+  <link rel="icon" href="data:," />
+  <title>每天抽签老虎机</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&family=ZCOOL+KuaiLe&display=swap');
+
+    :root {
+      color-scheme: light dark;
+      --page: #fff6d9;
+      --ink: #201b17;
+      --muted: #675d52;
+      --machine: #dc3f32;
+      --machine-deep: #9f261f;
+      --machine-highlight: #f45a47;
+      --yellow: #ffc928;
+      --yellow-deep: #d99a00;
+      --reel: #fffdf7;
+      --reel-ink: #211c17;
+      --line: #2f2822;
+      --pool: #fffaf0;
+      --pool-line: #dfc990;
+      --win: #e7f6b0;
+      --shadow: rgba(82, 42, 10, .22);
+      --focus: #045fcc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #191512;
+        --ink: #fff5df;
+        --muted: #cfbeaa;
+        --machine: #c6382d;
+        --machine-deep: #761d18;
+        --machine-highlight: #e84d3d;
+        --yellow: #f6bd21;
+        --yellow-deep: #a97700;
+        --reel: #f8edd8;
+        --reel-ink: #211c17;
+        --line: #120f0c;
+        --pool: #251f1a;
+        --pool-line: #55483a;
+        --win: #31431d;
+        --shadow: rgba(0, 0, 0, .42);
+        --focus: #7dc5ff;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 11% 5%, rgba(255, 201, 40, .2) 0 4px, transparent 5px),
+        radial-gradient(circle at 92% 14%, rgba(220, 63, 50, .16) 0 6px, transparent 7px),
+        var(--page);
+      color: var(--ink);
+      font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+    }
+
+    button { font: inherit; }
+    button:focus-visible { outline: 4px solid var(--focus); outline-offset: 4px; }
+
+    .page {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: max(24px, env(safe-area-inset-top)) 18px max(36px, env(safe-area-inset-bottom));
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 16px;
+      margin: 4px auto 18px;
+      max-width: 630px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 10ch;
+      font-family: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+      font-size: clamp(34px, 9vw, 54px);
+      line-height: .98;
+      font-weight: 400;
+      letter-spacing: .01em;
+    }
+
+    .day-tag {
+      padding: 8px 11px;
+      border: 2px solid var(--line);
+      background: var(--yellow);
+      color: #21190b;
+      box-shadow: 3px 3px 0 var(--line);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+      transform: rotate(2deg);
+    }
+
+    .machine-wrap {
+      position: relative;
+      max-width: 630px;
+      margin: 0 auto;
+      padding-right: 44px;
+    }
+
+    .machine {
+      position: relative;
+      z-index: 2;
+      border: 4px solid var(--line);
+      border-radius: 26px 26px 18px 18px;
+      background: var(--machine);
+      box-shadow: 0 14px 0 var(--machine-deep), 0 22px 38px var(--shadow);
+      padding: 22px 18px 20px;
+    }
+
+    .marquee {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 8px;
+      width: min(94%, 500px);
+      margin: -5px auto 18px;
+    }
+
+    .bulb {
+      aspect-ratio: 1;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      background: var(--yellow);
+      box-shadow: inset -2px -2px 0 var(--yellow-deep);
+    }
+
+    .machine.spinning .bulb:nth-child(odd) { animation: blink .28s steps(1) infinite; }
+    .machine.spinning .bulb:nth-child(even) { animation: blink .28s .14s steps(1) infinite; }
+    @keyframes blink { 50% { background: #fff8c4; box-shadow: 0 0 9px #fff5a5; } }
+
+    .screen {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      padding: 13px;
+      border: 4px solid var(--line);
+      border-radius: 16px;
+      background: #2b211b;
+      box-shadow: inset 0 5px 0 rgba(0,0,0,.3);
+      overflow: hidden;
+    }
+
+    .screen::after {
+      content: "";
+      position: absolute;
+      inset: 13px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 35%, transparent 70%, rgba(74,44,20,.08));
+      border-radius: 8px;
+    }
+
+    .reel {
+      display: grid;
+      place-items: center;
+      min-height: 116px;
+      border: 3px solid #c3ad87;
+      border-radius: 9px;
+      background:
+        linear-gradient(180deg, transparent 48%, rgba(167,141,99,.22) 49%, rgba(167,141,99,.22) 51%, transparent 52%),
+        var(--reel);
+      color: var(--reel-ink);
+      font-family: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+      font-size: clamp(49px, 15vw, 82px);
+      line-height: 1;
+      text-shadow: 2px 2px 0 rgba(241, 183, 34, .45);
+      overflow: hidden;
+    }
+
+    .reel.flipping .symbol { animation: reelFlip .13s linear infinite; }
+
+    .screen.winner {
+      grid-template-columns: 1fr;
+    }
+
+    .screen.winner .reel { display: none; }
+    .screen.winner .reel:first-child {
+      display: grid;
+      grid-column: 1 / -1;
+      padding: 14px;
+      font-size: clamp(29px, 7vw, 46px);
+      line-height: 1.15;
+      text-align: center;
+    }
+
+    @keyframes reelFlip {
+      0% { transform: translateY(-18%); opacity: .35; }
+      50% { opacity: 1; }
+      100% { transform: translateY(18%); opacity: .35; }
+    }
+
+    .result {
+      min-height: 86px;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      margin: 16px 4px 0;
+      padding: 8px 10px;
+      color: #fff9e9;
+      text-align: center;
+    }
+
+    .result-title {
+      margin: 0;
+      font-family: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+      font-size: clamp(27px, 7vw, 39px);
+      line-height: 1.12;
+      font-weight: 400;
+    }
+
+    .result-note {
+      margin: 7px 0 0;
+      font-size: 14px;
+      font-weight: 700;
+      opacity: .9;
+    }
+
+    .lever {
+      position: absolute;
+      z-index: 1;
+      right: 0;
+      top: 92px;
+      width: 52px;
+      height: 185px;
+    }
+
+    .lever-stick {
+      position: absolute;
+      left: 21px;
+      top: 27px;
+      width: 15px;
+      height: 134px;
+      border: 3px solid var(--line);
+      border-radius: 10px;
+      background: #d7c4a7;
+      transform-origin: 50% 86%;
+      transition: transform .25s ease;
+    }
+
+    .lever-knob {
+      position: absolute;
+      left: 6px;
+      top: 0;
+      width: 45px;
+      height: 45px;
+      border: 3px solid var(--line);
+      border-radius: 50%;
+      background: var(--yellow);
+      box-shadow: inset -5px -5px 0 var(--yellow-deep);
+      transform-origin: 50% 170px;
+      transition: transform .25s ease;
+    }
+
+    .machine-wrap.pulled .lever-stick,
+    .machine-wrap.pulled .lever-knob { transform: rotate(24deg) translateY(8px); }
+
+    .spin-button {
+      display: block;
+      width: min(100%, 420px);
+      min-height: 64px;
+      margin: 36px auto 0;
+      border: 3px solid var(--line);
+      border-radius: 16px;
+      background: var(--yellow);
+      color: #21190b;
+      box-shadow: 0 7px 0 var(--line);
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+    }
+
+    .spin-button:hover:not(:disabled) { background: #ffd85b; }
+    .spin-button:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 2px 0 var(--line); }
+    .spin-button:disabled { cursor: not-allowed; opacity: .55; }
+
+    .sound-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px auto 0;
+    }
+
+    .sound-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 7px 11px;
+      border: 2px solid var(--pool-line);
+      border-radius: 9px;
+      background: var(--pool);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .sound-toggle:hover { border-color: var(--yellow-deep); }
+    .sound-toggle svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .sound-toggle .sound-off { display: none; }
+    .sound-toggle[aria-pressed="false"] .sound-on { display: none; }
+    .sound-toggle[aria-pressed="false"] .sound-off { display: block; }
+
+    .rule {
+      margin: 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .pool-section {
+      max-width: 630px;
+      margin: 34px auto 0;
+      padding-top: 26px;
+      border-top: 2px dashed var(--pool-line);
+    }
+
+    .pool-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .pool-heading h2 { margin: 0; font-size: 20px; }
+    .pool-heading p { margin: 0; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .pool-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .pool-item {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      padding: 10px;
+      border: 2px solid var(--pool-line);
+      border-radius: 10px;
+      background: var(--pool);
+    }
+
+    .pool-item.mystery {
+      background: var(--win);
+      border-color: #738e28;
+    }
+
+    .mini-symbol {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--yellow);
+      color: #271d0a;
+      font-family: "ZCOOL KuaiLe", "Noto Sans SC", sans-serif;
+      font-size: 20px;
+    }
+
+    .pool-name {
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .confetti {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .confetti i {
+      position: absolute;
+      top: -20px;
+      width: 10px;
+      height: 18px;
+      background: var(--c);
+      animation: fall var(--d) cubic-bezier(.19,.72,.55,.99) forwards;
+    }
+
+    @keyframes fall {
+      to { transform: translate3d(var(--x), 110vh, 0) rotate(720deg); }
+    }
+
+    @media (max-width: 500px) {
+      .page { padding-inline: 12px; }
+      .intro { padding-inline: 6px; }
+      .machine-wrap { padding-right: 31px; }
+      .machine { padding: 18px 10px 16px; border-radius: 22px 22px 14px 14px; }
+      .marquee { gap: 5px; margin-bottom: 13px; }
+      .screen { gap: 5px; padding: 8px; }
+      .screen::after { inset: 8px; }
+      .reel { min-height: 96px; border-width: 2px; }
+      .lever { right: -7px; transform: scale(.78); transform-origin: top center; }
+      .result { min-height: 78px; }
+      .pool-list { grid-template-columns: 1fr; }
+      .pool-section { margin-top: 30px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="intro" aria-labelledby="main-heading">
+      <h1 id="main-heading">今天会抽到什么？</h1>
+      <div class="day-tag">今日一签</div>
+    </section>
+
+    <section class="machine-wrap" id="machineWrap" aria-label="抽签老虎机">
+      <div class="machine" id="machine">
+        <div class="marquee" aria-hidden="true">
+          <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+          <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+          <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        </div>
+        <div class="screen" id="screen" aria-live="off">
+          <div class="reel"><span class="symbol">？</span></div>
+          <div class="reel"><span class="symbol">？</span></div>
+          <div class="reel"><span class="symbol">？</span></div>
+        </div>
+        <div class="result" role="status" aria-live="polite">
+          <p class="result-title" id="resultTitle">按下按钮，开始抽签</p>
+          <p class="result-note" id="resultNote">三个图案停下来，就揭晓今天的结果</p>
+        </div>
+      </div>
+      <div class="lever" aria-hidden="true">
+        <span class="lever-stick"></span>
+        <span class="lever-knob"></span>
+      </div>
+    </section>
+
+    <button class="spin-button" id="spinButton" type="button">开始抽签</button>
+    <div class="sound-row">
+      <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true" aria-label="关闭老虎机音效">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path class="sound-on" d="M11 5 6.5 9H3v6h3.5l4.5 4V5Zm4 4a4.5 4.5 0 0 1 0 6m2.7-8.7a8 8 0 0 1 0 11.4"/>
+          <path class="sound-off" d="M11 5 6.5 9H3v6h3.5l4.5 4V5Zm4.5 5.5 5 5m0-5-5 5"/>
+        </svg>
+        <span id="soundLabel">老虎机音效：开</span>
+      </button>
+      <p class="rule" id="ruleText">抽中“再来一次”，可以立刻多抽一回</p>
+    </div>
+
+    <section class="pool-section" aria-labelledby="pool-heading">
+      <div class="pool-heading">
+        <h2 id="pool-heading">这次的奖池</h2>
+        <p>共 21 张签</p>
+      </div>
+      <ul class="pool-list">
+        <li class="pool-item mystery"><span class="mini-symbol">奖</span><span class="pool-name">神秘大奖</span><span class="count">独一份</span></li>
+        <li class="pool-item"><span class="mini-symbol">弹</span><span class="pool-name">打弹珠 100 颗</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">写</span><span class="pool-name">写作业 1 小时</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">爸</span><span class="pool-name">跟爸爸玩一次</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">妈</span><span class="pool-name">跟妈妈玩一次</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">睡</span><span class="pool-name">晚上自己睡</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">游</span><span class="pool-name">打游戏 1 小时</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">免</span><span class="pool-name">免死金牌</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">视</span><span class="pool-name">看电视一次</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">再</span><span class="pool-name">再来一次</span><span class="count">2 张</span></li>
+        <li class="pool-item"><span class="mini-symbol">空</span><span class="pool-name">啥也没有</span><span class="count">2 张</span></li>
+      </ul>
+    </section>
+  </main>
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <script>
+    (function () {
+      var prizes = [
+        { name: '神秘大奖', symbol: '奖', note: '快去找爸爸妈妈揭晓！', mystery: true },
+        { name: '打弹珠 100 颗', symbol: '弹', note: '准备好弹珠，开玩！' },
+        { name: '打弹珠 100 颗', symbol: '弹', note: '准备好弹珠，开玩！' },
+        { name: '写作业 1 小时', symbol: '写', note: '专心完成，做完就轻松啦' },
+        { name: '写作业 1 小时', symbol: '写', note: '专心完成，做完就轻松啦' },
+        { name: '跟爸爸玩一次', symbol: '爸', note: '去选一个你们都喜欢的玩法吧' },
+        { name: '跟爸爸玩一次', symbol: '爸', note: '去选一个你们都喜欢的玩法吧' },
+        { name: '跟妈妈玩一次', symbol: '妈', note: '去邀请妈妈一起玩吧' },
+        { name: '跟妈妈玩一次', symbol: '妈', note: '去邀请妈妈一起玩吧' },
+        { name: '晚上自己睡', symbol: '睡', note: '勇敢挑战，今晚自己入睡' },
+        { name: '晚上自己睡', symbol: '睡', note: '勇敢挑战，今晚自己入睡' },
+        { name: '打游戏 1 小时', symbol: '游', note: '选好游戏，开心玩一小时' },
+        { name: '打游戏 1 小时', symbol: '游', note: '选好游戏，开心玩一小时' },
+        { name: '免死金牌', symbol: '免', note: '免死金牌到手，收好它！' },
+        { name: '免死金牌', symbol: '免', note: '免死金牌到手，收好它！' },
+        { name: '看电视一次', symbol: '视', note: '选个想看的节目，开心看一次' },
+        { name: '看电视一次', symbol: '视', note: '选个想看的节目，开心看一次' },
+        { name: '再来一次', symbol: '再', note: '好运加时！再抽一回', reroll: true },
+        { name: '再来一次', symbol: '再', note: '好运加时！再抽一回', reroll: true },
+        { name: '啥也没有', symbol: '空', note: '今天轻松过关，明天再来' },
+        { name: '啥也没有', symbol: '空', note: '今天轻松过关，明天再来' }
+      ];
+
+      var symbolChoices = ['弹', '写', '爸', '奖', '妈', '睡', '游', '免', '视', '再', '空'];
+      var reels = Array.prototype.slice.call(document.querySelectorAll('.reel'));
+      var symbols = Array.prototype.slice.call(document.querySelectorAll('.symbol'));
+      var machine = document.getElementById('machine');
+      var screen = document.getElementById('screen');
+      var machineWrap = document.getElementById('machineWrap');
+      var button = document.getElementById('spinButton');
+      var resultTitle = document.getElementById('resultTitle');
+      var resultNote = document.getElementById('resultNote');
+      var ruleText = document.getElementById('ruleText');
+      var confetti = document.getElementById('confetti');
+      var soundToggle = document.getElementById('soundToggle');
+      var soundLabel = document.getElementById('soundLabel');
+      var spinning = false;
+      var soundEnabled = true;
+      var audioContext = null;
+      var masterGain = null;
+      var spinTickTimer = null;
+      var tickStep = 0;
+
+      function randomIndex(max) {
+        if (window.crypto && window.crypto.getRandomValues) {
+          var value = new Uint32Array(1);
+          window.crypto.getRandomValues(value);
+          return value[0] % max;
+        }
+        return Math.floor(Math.random() * max);
+      }
+
+      function ensureAudio() {
+        if (!soundEnabled) return false;
+        if (!audioContext) {
+          var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return false;
+          audioContext = new AudioContextClass();
+          masterGain = audioContext.createGain();
+          masterGain.gain.value = 0.28;
+          masterGain.connect(audioContext.destination);
+        }
+        if (audioContext.state === 'suspended') audioContext.resume();
+        return true;
+      }
+
+      function tone(frequency, delay, duration, type, volume, endFrequency) {
+        if (!soundEnabled || !ensureAudio()) return;
+        var start = audioContext.currentTime + (delay || 0);
+        var oscillator = audioContext.createOscillator();
+        var gain = audioContext.createGain();
+        oscillator.type = type || 'square';
+        oscillator.frequency.setValueAtTime(frequency, start);
+        if (endFrequency) oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(volume || 0.08, start + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        oscillator.connect(gain);
+        gain.connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + duration + 0.02);
+      }
+
+      function playSpinStart() {
+        tone(180, 0, .12, 'square', .13, 110);
+        tone(320, .1, .09, 'square', .08, 220);
+        tickStep = 0;
+        window.clearInterval(spinTickTimer);
+        spinTickTimer = window.setInterval(function () {
+          var notes = [660, 740, 610, 820];
+          tone(notes[tickStep % notes.length], 0, .035, 'square', .035, 430);
+          tickStep += 1;
+        }, 92);
+      }
+
+      function playReelStop(index) {
+        tone(380 + index * 110, 0, .075, 'square', .13, 250 + index * 80);
+        tone(760 + index * 90, .035, .055, 'sine', .07);
+      }
+
+      function playResult(prize) {
+        var notes;
+        if (prize.mystery) {
+          notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
+        } else if (prize.reroll) {
+          notes = [523.25, 659.25, 783.99, 987.77];
+        } else if (prize.name === '啥也没有') {
+          notes = [493.88, 440, 392];
+        } else {
+          notes = [523.25, 659.25, 783.99, 1046.5];
+        }
+        notes.forEach(function (note, index) {
+          tone(note, .12 + index * .11, prize.mystery ? .24 : .17, index % 2 ? 'triangle' : 'square', prize.mystery ? .12 : .09);
+        });
+        if (prize.mystery) {
+          tone(261.63, .1, .78, 'triangle', .07);
+          tone(392, .1, .78, 'triangle', .055);
+        }
+      }
+
+      function stopSpinTicks() {
+        window.clearInterval(spinTickTimer);
+        spinTickTimer = null;
+      }
+
+      function createConfetti() {
+        confetti.textContent = '';
+        var colors = ['#ffc928', '#dc3f32', '#54a96b', '#2c78c4', '#ff8e6a'];
+        for (var i = 0; i < 42; i++) {
+          var piece = document.createElement('i');
+          piece.style.left = randomIndex(100) + '%';
+          piece.style.setProperty('--c', colors[randomIndex(colors.length)]);
+          piece.style.setProperty('--d', (1.7 + randomIndex(15) / 10) + 's');
+          piece.style.setProperty('--x', (randomIndex(200) - 100) + 'px');
+          piece.style.animationDelay = (randomIndex(35) / 100) + 's';
+          confetti.appendChild(piece);
+        }
+        window.setTimeout(function () { confetti.textContent = ''; }, 3600);
+      }
+
+      function spin() {
+        if (spinning || button.disabled) return;
+        ensureAudio();
+        playSpinStart();
+        spinning = true;
+        button.disabled = true;
+        button.textContent = '正在转动…';
+        resultTitle.textContent = '咔嗒、咔嗒、咔嗒…';
+        resultNote.textContent = '好运正在靠近';
+        screen.classList.remove('winner');
+        machine.classList.add('spinning');
+        machineWrap.classList.add('pulled');
+        reels.forEach(function (reel) { reel.classList.add('flipping'); });
+
+        var prize = prizes[randomIndex(prizes.length)];
+        var timers = [];
+        symbols.forEach(function (symbol, index) {
+          timers[index] = window.setInterval(function () {
+            symbol.textContent = symbolChoices[randomIndex(symbolChoices.length)];
+          }, 80 + index * 15);
+        });
+
+        reels.forEach(function (reel, index) {
+          window.setTimeout(function () {
+            window.clearInterval(timers[index]);
+            reel.classList.remove('flipping');
+            symbols[index].textContent = prize.symbol;
+            playReelStop(index);
+            if (index === reels.length - 1) {
+              stopSpinTicks();
+              finish(prize);
+            }
+          }, 980 + index * 430);
+        });
+      }
+
+      function finish(prize) {
+        spinning = false;
+        machine.classList.remove('spinning');
+        machineWrap.classList.remove('pulled');
+        screen.classList.add('winner');
+        symbols[0].textContent = prize.name;
+        resultTitle.textContent = prize.name;
+        resultNote.textContent = prize.note;
+        playResult(prize);
+
+        if (prize.reroll) {
+          button.disabled = false;
+          button.textContent = '用掉“再来一次”';
+          ruleText.textContent = '这次不算，按按钮立刻再抽一回';
+        } else {
+          button.disabled = true;
+          button.textContent = '今天抽签完成';
+          ruleText.textContent = '把抽中的结果给爸爸妈妈看吧';
+        }
+
+        if (prize.mystery) createConfetti();
+      }
+
+      soundToggle.addEventListener('click', function () {
+        soundEnabled = !soundEnabled;
+        soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+        soundToggle.setAttribute('aria-label', soundEnabled ? '关闭老虎机音效' : '打开老虎机音效');
+        soundLabel.textContent = soundEnabled ? '老虎机音效：开' : '老虎机音效：关';
+
+        if (soundEnabled) {
+          ensureAudio();
+          if (masterGain) masterGain.gain.setValueAtTime(0.28, audioContext.currentTime);
+          tone(523.25, 0, .09, 'square', .08);
+          tone(783.99, .08, .12, 'triangle', .09);
+          if (spinning) playSpinStart();
+        } else {
+          stopSpinTicks();
+          if (masterGain && audioContext) masterGain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        }
+      });
+
+      button.addEventListener('click', spin);
+    }());
+  </script>
+</body>
+</html>
